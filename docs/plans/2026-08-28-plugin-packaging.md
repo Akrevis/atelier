@@ -79,3 +79,4 @@ README 是**对外产出物**：读起来必须像一份从头写成的成品—
 ### 不许碰
 
 `docs/context.md` · `docs/roadmap.md` · `output-styles/owncc.md`。
+- 2026-09-06 分支 `docs/readme` 开工
