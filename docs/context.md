@@ -24,12 +24,15 @@
 
 ## 活跃任务
 
-| 任务 | 计划文档 | 状态 |
-|---|---|---|
-| explain skill 瘦身 | `plans/2026-08-28-explain-skill-slim.md` | 未开始 |
-| 写 code-walkthrough skill | `plans/2026-08-28-code-walkthrough-skill.md` | 未开始 |
-| 写 /palette command | `plans/2026-08-28-palette-command.md` | 未开始 |
-| 打包三件套 | `plans/2026-08-28-plugin-packaging.md` | 未开始 |
+| 任务 | 分支 | 计划文档 | 合并次序 |
+|---|---|---|---|
+| 写 code-walkthrough skill | `feat/code-walkthrough` | `plans/2026-08-28-code-walkthrough-skill.md` | 先到先合 |
+| 写 `/palette` command | `feat/palette` | `plans/2026-08-28-palette-command.md` | 先到先合 |
+| 双语 README | `docs/readme` | `plans/2026-08-28-plugin-packaging.md` | **必须最后**——功能清单要等上面两个 |
+
+**这里不记状态**。并行时状态每天都在变，写进来必然过期，看 PR 列表（`gh pr list`）才是准的。
+
+**合并次序不是优先级**。三个分支同时开工，没有「先做哪个」的问题；这一列回答的是另外三件事：谁先合回 main、冲突时谁改、砍范围时先砍谁。前两个先到先合，后合的那个负责解冲突；`docs/readme` 无论何时写完都最后合。
 
 ## 并行开发约定
 
