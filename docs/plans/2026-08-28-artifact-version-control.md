@@ -1,6 +1,7 @@
 # 产物纳入版本控制
 
 > Opened: 2026-08-28 · commit 4229fe1
+> Closed: 2026-09-06
 > 来源：原 backlog D-08 + D-09，同源合并
 
 ## 目标
@@ -21,20 +22,35 @@
 - **不做**同步自动化（文件监听、git hook）——先把权威副本定下来，自动化是之后的事
 - **不改** owncc.md 与 SKILL.md 的内容，那是下一个任务的事
 
-## 推断的前提（待确认）
+## 推断的前提
 
-- 假设 `skills/` 是权威位置、`.claude/skills/` 是本地生效副本——依据是插件规范要求 `skills/` 在包根
-- 假设 `.claude/skills/` 可以用 Windows 目录联接（junction）指向 `skills/`，同卷、免提权；**未实测**
-- 假设 git 对 junction 的处理是「跟进去当普通目录」，因此 `.claude/skills/` 必须同时移出 git 追踪；**未实测**
+| 前提 | 结果 |
+|---|---|
+| `skills/` 是权威位置、`.claude/skills/` 是本地生效副本 | 成立，但**下半句作废**——见下 |
+| `.claude/skills/` 可用 junction 指向 `skills/`，同卷免提权 | **未验证，也不必验证**——方案已被否 |
+| git 对 junction 的处理需要 `.claude/skills/` 移出追踪 | 同上 |
+
+**关键前提被推翻**：整个 junction 方案建立在「本地需要 `.claude/skills/` 加载 skill 做开发」之上。实际使用方式是通过插件安装，开发阶段不走本地加载路径，因此 `.claude/skills/` 没有存在理由——**直接删除即可，不需要任何联接或同步机制**。
 
 ## 完成判据
 
-- [ ] `git ls-files` 里 `explain/SKILL.md` 只出现一次
-- [ ] `git ls-files` 里出现 `output-styles/owncc.md`
-- [ ] 项目内 `output-styles/owncc.md` 与 `~/.claude/output-styles/owncc.md` 内容一致（`diff` 为空）
-- [ ] 本地 `.claude/skills/explain/SKILL.md` 仍可被 Claude Code 加载（新开会话验证 explain skill 出现在清单里）
-- [ ] `docs/context.md` 的结构性坑一条据实更新为最终采用的同步方式
+- [x] `git ls-files` 里 `explain/SKILL.md` 只出现一次
+- [x] `git ls-files` 里出现 `output-styles/owncc.md`
+- [x] 项目内 `output-styles/owncc.md` 与 `~/.claude/output-styles/owncc.md` 内容一致
+- [~] ~~本地 `.claude/skills/explain/SKILL.md` 仍可被 Claude Code 加载~~ — **作废**，该路径已删除，本地加载不在使用方式内
+- [x] `docs/context.md` 的结构性坑一条据实更新
+
+## 实际解法
+
+| 产物 | 权威位置 | 同步方式 |
+|---|---|---|
+| `explain/SKILL.md` | `skills/` | 无需同步，唯一副本 |
+| `owncc.md` | `output-styles/` | `cp` 推送到 `~/.claude/output-styles/`，跨卷别无选择 |
+
+删除 `.claude/skills/` 后，`.claude/` 目录在本项目内已无内容。
 
 ## 进度
 
-- 2026-08-28 从 backlog 拆出，未开始
+- 2026-08-28 从 backlog 拆出
+- 2026-09-06 owncc.md 落库（`acfbf58`）
+- 2026-09-06 删除 `.claude/skills/` 重复副本，junction 方案因前提推翻而取消，任务完成

@@ -1,6 +1,6 @@
 # atelier · context
 
-> Last updated: 2026-08-28 · commit 4229fe1
+> Last updated: 2026-09-06 · commit cc315a5
 > 本文件注入每次会话。只写 git 推导不出、且 AI 不知道自己缺的事实。
 
 ## 这是什么
@@ -20,12 +20,12 @@
 |---|---|
 | `docs` | 设计快照 · 决策日志 · 任务计划 · 演进路线 |
 | `skills` | 插件分发的 skill 实体 |
+| `output-styles` | `owncc.md` 的权威副本，独立于插件分发 |
 
 ## 活跃任务
 
 | 任务 | 计划文档 | 状态 |
 |---|---|---|
-| 产物纳入版本控制 | `plans/2026-08-28-artifact-version-control.md` | 未开始 |
 | explain skill 瘦身 | `plans/2026-08-28-explain-skill-slim.md` | 未开始 |
 | 写 code-walkthrough skill | `plans/2026-08-28-code-walkthrough-skill.md` | 未开始 |
 | 写 /palette command | `plans/2026-08-28-palette-command.md` | 未开始 |
@@ -35,4 +35,6 @@
 
 ## 结构性坑
 
-- **`owncc.md` 的生效位置与项目不同卷**：必须放在 `C:\Users\IceLine\.claude\output-styles\` 才生效，而项目在 `F:` 盘。跨卷硬链接不可用、符号链接需提权，因此项目内副本与生效副本只能靠复制同步。改完 `owncc.md` 必须推送到生效位置，否则改的是个没人读的文件。
+- **改完 `owncc.md` 必须手动推送到生效位置**：权威副本在项目 `output-styles/`，但只有 `~/.claude/output-styles/owncc.md` 会被加载。两者跨卷，硬链接不可用、符号链接需提权，只能复制。漏推的失败是静默的——改的是个没人读的文件。
+- **owncc 的规则文本是英文，它约束的输出是中文**：改它时别把模板里的固定字符串（`▍需你拍板` 等）和示例一并译掉，那些必须保持中文，否则模型会照着英文样例输出英文。
+- **开发阶段不走本地 skill 加载**：使用方式是插件安装，项目内不保留 `.claude/skills/` 副本。要在本地验证 skill，得先装插件，不能靠往 `.claude/` 里放一份。
