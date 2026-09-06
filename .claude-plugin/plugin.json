@@ -1,0 +1,8 @@
+{
+  "name": "atelier",
+  "version": "0.0.1",
+  "description": "Makes AI explanations learnable instead of merely correct. Ships layered explanation: the shallowest layer first, then a menu of specific follow-up questions to pick from — depth is negotiated with you, never guessed at. No quizzes, no gatekeeping.",
+  "author": {
+    "name": "Leone"
+  }
+}

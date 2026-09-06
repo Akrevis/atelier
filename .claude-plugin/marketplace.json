@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "atelier",
+  "description": "Tools that make an AI's output something you can learn from.",
+  "owner": {
+    "name": "Leone"
+  },
+  "plugins": [
+    {
+      "name": "atelier",
+      "description": "An answer you can follow is not the same as an answer you learn from. Layered explanation hands the depth control back to you: shallowest layer first, then specific follow-up questions you choose between.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
