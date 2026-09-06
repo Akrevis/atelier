@@ -35,4 +35,9 @@
 
 ## 阶段二 · MVP 实现（进行中）
 
-尚无归档任务。当前工作面见 `context.md`。
+
+| 结论 | 决策记录 | 落地提交 |
+|---|---|---|
+| 两个产物各有唯一权威副本：`skills/` 与 `output-styles/`，都在 git 内 | `plans/archive/2026-08-28-artifact-version-control.md` | `acfbf58` `cccdea7` |
+| `.claude/skills/` 副本删除——使用方式是插件安装，本地加载路径没有存在理由，junction 同步方案随前提一并作废 | 同上 | `cccdea7` |
+| owncc 规则文本改英文，约束原意与输出语言（中文）均不变 | 无独立记录，见 commit | `6e85cea` |
