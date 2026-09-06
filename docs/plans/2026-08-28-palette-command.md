@@ -38,3 +38,32 @@ ASCII 撑不住的图（>15 节点）的出口。用户主动敲，生成可视�
 ## 进度
 
 - 2026-08-28 从 backlog 拆出，未开始
+
+## 分派契约
+
+| 项 | 值 |
+|---|---|
+| 分支 | `feat/palette` |
+| 起点 | main 的 `674ed25` |
+| 交付物 | `commands/palette.md` + HTML 模板 |
+| 完成后接手 | `docs/readme` 分支需要这个 command 的能力清单 |
+
+### 已冻结的前置——拿着就能开工，不要等人也不要改
+
+| 前置 | 在哪 | 状态 |
+|---|---|---|
+| 存储位置、生命周期、tab 切换、调用权 | `docs/design.md` 第五节 | 冻结 |
+| 什么时候该建议用户敲（>15 节点） | `output-styles/owncc.md` 画图第 5 条 | 冻结 |
+| `disable-model-invocation: true` | 本文档「目标」节 | 冻结 |
+
+与另外两个包**零文件重叠**，`/palette` 不参与 skill 的触发竞争（它靠用户主动敲），因此没有语义依赖。
+
+### 不许碰
+
+`docs/context.md` · `docs/roadmap.md` · `output-styles/owncc.md`。
+
+### 唯一允许回来问决策者的情况
+
+实测发现 `disable-model-invocation` 的行为与文档描述不符，导致「AI 不能自己调」这个设计前提不成立。那要改设计，不是改实现。
+
+HTML 模板长什么样、tab 用什么实现、新会话重置的判断机制——**全部自己定，在「进度」里记下选了什么**。

@@ -48,3 +48,34 @@ README 依赖前三步定型才知道写什么。
 
 - 2026-08-28 从 backlog 拆出
 - 2026-09-06 两个 JSON 完成，为解除实测阻塞而提前；README 仍待前三步定型
+
+## 分派契约
+
+| 项 | 值 |
+|---|---|
+| 分支 | `docs/readme` |
+| 起点 | main 的 `674ed25`；功能清单一节要等另外两个包合回 main |
+| 交付物 | `README.md` + `README.zh-CN.md`，`plugin.json` 的 description 补齐 |
+| 完成后接手 | 收尾包做端到端实测 |
+
+### 现在就能写的部分
+
+定位、设计理念、安装步骤、与 `owncc.md` 的组合使用说明、卸载说明。**只有功能清单一节是产出依赖**，必须等另外两个包。
+
+参照 `~/.claude/plugins/cache/groundwork/groundwork/1.1.1/README.zh-CN.md` 的结构，那是本机装着的真实样例。
+
+### 已冻结的前置
+
+| 前置 | 在哪 |
+|---|---|
+| 定位与设计理念 | `docs/design.md` 第一、二节 |
+| 为什么 owncc 不进插件 | `docs/design.md` 第三节 |
+| 安装命令格式 | groundwork 的 README |
+
+### 硬约束
+
+README 是**对外产出物**：读起来必须像一份从头写成的成品——不留演化痕迹、不写项目私史、不出现「原本 X 后来改成 Y」。`docs/` 里的任何决策过程都不许出现在 README 里。
+
+### 不许碰
+
+`docs/context.md` · `docs/roadmap.md` · `output-styles/owncc.md`。

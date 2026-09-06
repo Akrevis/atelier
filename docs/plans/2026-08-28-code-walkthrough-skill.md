@@ -37,3 +37,37 @@ MVP 三组件里唯一还没写的 skill。内容已在 `design.md` 定完，这
 ## 进度
 
 - 2026-08-28 从 backlog 拆出，未开始
+
+## 分派契约
+
+| 项 | 值 |
+|---|---|
+| 分支 | `feat/code-walkthrough` |
+| 起点 | main 的 `674ed25` |
+| 交付物 | `skills/code-walkthrough/SKILL.md`，≤500 行 |
+| 完成后接手 | `docs/readme` 分支需要这个 skill 的能力清单 |
+
+### 已冻结的前置——拿着就能开工，不要等人也不要改
+
+| 前置 | 在哪 | 状态 |
+|---|---|---|
+| `explain` 的 description（划边界要用） | `skills/explain/SKILL.md` frontmatter | 冻结，`4be0237` 后未动 |
+| `/palette` 的命令名与建议时机 | `docs/design.md` 第五节 | 冻结 |
+| 画图规格、颜文字、分层结构、篇幅 | `output-styles/owncc.md` | 冻结，**不许在 skill 里重写一份** |
+| 卡壳三档、TDD 可配、数据流日志的内容 | `docs/design.md` 第四节 | 冻结 |
+
+### 不许碰
+
+`docs/context.md` · `docs/roadmap.md` · `output-styles/owncc.md`。理由见 `context.md` 的并行开发约定。
+
+### 唯一允许回来问决策者的情况
+
+写完发现 **`explain` 的 description 必须改**才能划清边界（D-05）。那是跨包改动，会影响已冻结的前置，不能自己决定。
+
+其余一律照本文档执行，包括拿不准时选哪个方案——**选一个，在「进度」里记下选了什么和为什么，不要停下来问**。
+
+### 补充验收判据
+
+- [ ] 与 `owncc.md` 逐节比对，确认没有重新引入画图规格、颜文字、标记、分层结构、篇幅约束中的任何一条
+
+**为什么单列这条**：`explain` 瘦身时抓出四处与 owncc 重复或冲突的内容，新写的 skill 完全可能再犯一遍。写的时候感觉不到重复，因为两个文件不会同时打开。
