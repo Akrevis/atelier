@@ -41,3 +41,16 @@
 | 两个产物各有唯一权威副本：`skills/` 与 `output-styles/`，都在 git 内 | `plans/archive/2026-08-28-artifact-version-control.md` | `acfbf58` `cccdea7` |
 | `.claude/skills/` 副本删除——使用方式是插件安装，本地加载路径没有存在理由，junction 同步方案随前提一并作废 | 同上 | `cccdea7` |
 | owncc 规则文本改英文，约束原意与输出语言（中文）均不变 | 无独立记录，见 commit | `6e85cea` |
+| explain skill 瘦身：删与 owncc 重复及冲突的四处；分层判据从「数标题」改为「首轮不碰五步」 | `plans/2026-08-28-explain-skill-slim.md` | `4be0237` |
+| 打包的两个 JSON 提前落地，解除 skill 行为实测的阻塞 | `plans/2026-08-28-plugin-packaging.md` | `9352713` |
+
+### 剩余工作面与分支划分
+
+| 分支 | 工作面 | 计划文档 | 可否与他人并行 |
+|---|---|---|---|
+| `feat/code-walkthrough` | 写 code-walkthrough skill，收尾与 explain 的边界判据 | `plans/2026-08-28-code-walkthrough-skill.md` | 可 |
+| `feat/palette` | 写 `/palette` command 与 HTML 模板 | `plans/2026-08-28-palette-command.md` | 可 |
+| `chore/repo-setup` | LICENSE、远程仓库、`plugin.json` 补 `repository` 与 `license` | 无（改动小，不值得建文档） | 可 |
+| `docs/readme` | 双语 README，`plugin.json` 的 description 补齐新能力 | `plans/2026-08-28-plugin-packaging.md` | **否**——写什么取决于前三个的产出 |
+
+并行时的三条铁律见 `context.md`。
