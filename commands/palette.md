@@ -1,8 +1,8 @@
 ---
-description: 把刚才讲的结构画成一张可交互的 HTML 图——ASCII 框图撑不住的时候用。同一会话内多张图以标签页并存，新会话第一次调用清空重来。
+description: 把刚才讲的结构画成一张可交互的 HTML 图——ASCII 框图撑不住的时候用。同一会话内多张图以标签页并存，按项目和会话分文件存放，多个会话同时开也互不覆盖。
 argument-hint: [画什么，留空则画刚讨论过的结构]
 disable-model-invocation: true
-allowed-tools: Read, Edit, Bash(mkdir:*), Bash(cp:*), Bash(sed:*), Bash(grep:*), Bash(test:*), Bash(explorer.exe:*), Bash(open:*), Bash(xdg-open:*)
+allowed-tools: Read, Edit, Bash(mkdir:*), Bash(sed:*), Bash(tr:*), Bash(pwd:*), Bash(test:*), Bash(explorer.exe:*), Bash(open:*), Bash(xdg-open:*)
 ---
 
 # /palette —— 画板
@@ -13,39 +13,56 @@ allowed-tools: Read, Edit, Bash(mkdir:*), Bash(cp:*), Bash(sed:*), Bash(grep:*),
 
 ## 一、准备画布
 
+存储照搬 Claude Code 存会话的那套：**按项目分目录，按会话分文件**。
+
 ```
-文件   ~/.claude/atelier/palette.html
-模板   ${CLAUDE_PLUGIN_ROOT}/assets/palette-template.html
+~/.claude/atelier/projects/<项目路径编码>/<会话 ID>.html
+                           F--workspace-projects-atelier/034c08c0-9e65-….html
 ```
 
-会话标识取环境变量 `CLAUDE_CODE_SESSION_ID`，写在 HTML 根元素的 `data-session` 上。**当前值与文件里记的不一致，就是新会话，整个文件用模板覆盖重来**；一致则往里追加。
+| 段 | 怎么来 |
+|---|---|
+| 项目路径编码 | 当前工作目录里的 `:` `\` `/` 全换成 `-`。Windows 上要取 Windows 形式的路径（`pwd -W`），`F:\x\y` 编码成 `F--x-y` |
+| 会话 ID | 环境变量 `CLAUDE_CODE_SESSION_ID` |
+
+**这套路径本身就是生命周期**，不需要再判断「是不是新会话」：新会话必然落到新文件名，同一会话再敲就是往同一个文件里追加。两个会话同时开着也互不干扰——各写各的。
+
+建新文件时顺手清掉同目录下 30 天没动过的旧画板，跟 Claude Code 清理会话记录的周期对齐。这一步**没有预授权**（`find -delete` 不该被无条件放行），用户拒了就跳过——清理失败不影响画图，别停下来。
 
 Bash（Windows 的 git bash 同样适用）：
 
 ```bash
-SID="${CLAUDE_CODE_SESSION_ID:-unknown}"
-DIR=~/.claude/atelier
+SID="${CLAUDE_CODE_SESSION_ID:-nosession}"
+PROJ=$(pwd -W 2>/dev/null || pwd)
+DIR=~/.claude/atelier/projects/$(echo "$PROJ" | tr ':\\/' '-')
+FILE="$DIR/$SID.html"
 mkdir -p "$DIR"
-grep -q "data-session=\"$SID\"" "$DIR/palette.html" 2>/dev/null || {
-  cp "${CLAUDE_PLUGIN_ROOT}/assets/palette-template.html" "$DIR/palette.html"
-  sed -i "s/__SESSION__/$SID/" "$DIR/palette.html"
+test -f "$FILE" || {
+  find "$DIR" -maxdepth 1 -name '*.html' -mtime +30 -delete
+  sed -e "s/__SESSION__/$SID/" -e "s#__PROJECT__#$PROJ#" \
+      "${CLAUDE_PLUGIN_ROOT}/assets/palette-template.html" > "$FILE"
 }
+echo "$FILE"
 ```
 
 PowerShell：
 
 ```powershell
-$sid = if ($env:CLAUDE_CODE_SESSION_ID) { $env:CLAUDE_CODE_SESSION_ID } else { 'unknown' }
-$dir = "$HOME\.claude\atelier"
+$sid  = if ($env:CLAUDE_CODE_SESSION_ID) { $env:CLAUDE_CODE_SESSION_ID } else { 'nosession' }
+$dir  = Join-Path "$HOME\.claude\atelier\projects" ($PWD.Path -replace '[:\\/]', '-')
+$file = Join-Path $dir "$sid.html"
 New-Item -ItemType Directory -Force $dir | Out-Null
-$f = "$dir\palette.html"
-if (-not (Test-Path $f) -or -not (Select-String -Path $f -SimpleMatch "data-session=`"$sid`"" -Quiet)) {
-  (Get-Content "$env:CLAUDE_PLUGIN_ROOT\assets\palette-template.html" -Raw).Replace('__SESSION__', $sid) |
-    Set-Content $f -Encoding utf8
+if (-not (Test-Path $file)) {
+  Get-ChildItem $dir -Filter *.html |
+    Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item -Confirm:$false
+  (Get-Content "$env:CLAUDE_PLUGIN_ROOT\assets\palette-template.html" -Raw).
+    Replace('__SESSION__', $sid).Replace('__PROJECT__', $PWD.Path) |
+    Set-Content $file -Encoding utf8
 }
+$file
 ```
 
-`CLAUDE_CODE_SESSION_ID` 读不到时它退化成常量 `unknown`，**永远判成同一会话、永远只追加**。真遇到这种情况，改用你自己的上下文判断：本次会话里你没执行过这个命令，就是第一次，强制覆盖。
+`CLAUDE_CODE_SESSION_ID` 读不到时文件名退化成 `nosession.html`，**该项目下所有读不到 ID 的会话共用它、只追加不清空**。真遇到，就在报告路径时说一句这个文件是共用的。
 
 ## 二、追加一张图
 
@@ -95,11 +112,13 @@ if (-not (Test-Path $f) -or -not (Select-String -Path $f -SimpleMatch "data-sess
 
 ## 三、打开
 
+`$FILE` 就是上一步算出来的那条路径：
+
 | 平台 | 命令 |
 |---|---|
-| Windows | `explorer.exe "$(cygpath -w ~/.claude/atelier/palette.html)"` 或 PowerShell `Invoke-Item` |
-| macOS | `open ~/.claude/atelier/palette.html` |
-| Linux | `xdg-open ~/.claude/atelier/palette.html` |
+| Windows | `explorer.exe "$(cygpath -w "$FILE")"` 或 PowerShell `Invoke-Item $file` |
+| macOS | `open "$FILE"` |
+| Linux | `xdg-open "$FILE"` |
 
 **页面已经开着的时候不用再开一次**——换成一句「已追加第 N 张，页面里按 `R` 刷新」。浏览器不会自己重载 `file://`。
 

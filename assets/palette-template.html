@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-session="__SESSION__">
+<html lang="zh-CN" data-session="__SESSION__" data-project="__PROJECT__">
 <head>
 <meta charset="utf-8">
 <title>palette</title>
@@ -21,6 +21,10 @@
   }
   .bar { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   .brand { font-weight: 600; letter-spacing: .06em; color: var(--accent); }
+  .where {
+    color: var(--muted); font-size: 12px; font-family: ui-monospace, Consolas, monospace;
+    max-width: 46ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   .hint { color: var(--muted); font-size: 12px; }
   .hint kbd {
     border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px;
@@ -86,6 +90,7 @@
 <header>
   <div class="bar">
     <span class="brand">▍palette</span>
+    <span class="where" id="where"></span>
     <span class="hint">
       <kbd>R</kbd> 重新载入 · <kbd>1</kbd>–<kbd>9</kbd> 切换 · 悬停节点看它的连线
     </span>
@@ -276,6 +281,14 @@ function hover(stage) {
 }
 
 function boot() {
+  // 开着好几个画板标签页时，靠这行分清哪个是哪个
+  const meta = document.documentElement.dataset;
+  const proj = (meta.project || '').replace(/^__.*__$/, '');
+  const sid = (meta.session || '').replace(/^__.*__$/, '').slice(0, 8);
+  document.getElementById('where').textContent =
+    [proj.split(/[\\/]/).filter(Boolean).pop(), sid].filter(Boolean).join(' · ');
+  document.title = ['palette', proj.split(/[\\/]/).filter(Boolean).pop()].filter(Boolean).join(' · ');
+
   const raw = [...document.querySelectorAll('script.figure')];
   const tabs = document.getElementById('tabs');
   const panels = document.getElementById('panels');
