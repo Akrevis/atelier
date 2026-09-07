@@ -19,16 +19,19 @@
 | 模块 | 职责 |
 |---|---|
 | `docs` | 设计快照 · 决策日志 · 任务计划 · 演进路线 |
-| `skills` | 插件分发的 skill 实体 |
+| `skills` | 插件分发的 skill 实体：`explain` 与 `code-walkthrough` |
+| `commands` | `/palette` |
+| `assets` | 画板的 HTML 模板 |
 | `output-styles` | `owncc.md` 的权威副本，独立于插件分发 |
 
 ## 活跃任务
 
 | 任务 | 分支 | 计划文档 | 合并次序 |
 |---|---|---|---|
-| 写 code-walkthrough skill | `feat/code-walkthrough` | `plans/2026-08-28-code-walkthrough-skill.md` | 先到先合 |
-| 写 `/palette` command | `feat/palette` | `plans/2026-08-28-palette-command.md` | 先到先合 |
-| 双语 README | `docs/readme` | `plans/2026-08-28-plugin-packaging.md` | **必须最后**——功能清单要等上面两个 |
+| 端到端实测 | 待定 | `plans/2026-09-07-end-to-end-test.md` | 与 README 无依赖 |
+| 双语 README | `docs/readme` | `plans/2026-08-28-plugin-packaging.md` | 可随时合 |
+
+**三个组件已全部合入 main，但行为实测一条都没做**。静态检查全过不等于能用。
 
 **这里不记状态**。并行时状态每天都在变，写进来必然过期，看 PR 列表（`gh pr list`）才是准的。
 
@@ -41,6 +44,7 @@
 1. **功能分支不改 `context.md` 与 `roadmap.md`**。只改自己那份 `plans/` 文档。这两个文件是所有分支共享的索引，同时改必冲突，且是手动解的文本冲突。合并回 main 后由一个会话统一更新。
 2. **功能分支不改 `output-styles/owncc.md`**。生效副本是 `~/.claude/output-styles/` 里的全局单例，切分支它不跟着变——A 分支改完切到 B 会话，读的仍是 A 的版本，且没有任何提示。要改 owncc 就停下并行，单独在 main 上做。
 3. **插件测试是串行的**。装进测试环境的插件读的是当前 checkout 出来的那个分支；一个会话切分支，另一个会话正在测的内容就变了。同名插件也无法同时装两份。要测就约一个独占时间窗。
+4. **分支干完活必须 `git push`**。PR 反映的是远程分支，不是本地工作——本地 commit 了但没推，PR 里就是空的，合并照样成功、两边都不报错。已经因此空合过一次（PR #1 #2）。合并前用 `gh pr diff <n> --name-only` 核一眼文件清单。
 
 分支命名与工作面划分见 `roadmap.md` 阶段二。
 

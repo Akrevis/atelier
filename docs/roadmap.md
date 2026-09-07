@@ -43,6 +43,13 @@
 | owncc 规则文本改英文，约束原意与输出语言（中文）均不变 | 无独立记录，见 commit | `6e85cea` |
 | explain skill 瘦身：删与 owncc 重复及冲突的四处；分层判据从「数标题」改为「首轮不碰五步」 | `plans/2026-08-28-explain-skill-slim.md` | `4be0237` |
 | 打包的两个 JSON 提前落地，解除 skill 行为实测的阻塞 | `plans/2026-08-28-plugin-packaging.md` | `9352713` |
+| 写出 `code-walkthrough` skill，105 行；与 owncc 逐项比对确认零重复 | `plans/archive/2026-08-28-code-walkthrough-skill.md` | PR #4 |
+| 写出 `/palette` command 与 HTML 模板；模型只写图数据，页面负责布局 | `plans/archive/2026-08-28-palette-command.md` | PR #5 |
+| **推翻原 D-02**：画板存储从单文件改为按项目按会话分文件。单文件在并行会话下会互相静默抹掉，且「新会话要不要重置」这个状态判断整个消失 | `devlog.md` 2026-09-07 条目 | PR #5 |
+
+**三个组件的行为实测一条都没做**——静态判据（比对内容、搜关键词）全过，但没有任何一条在真实环境里跑过。归档不等于验证通过，实测另立任务，见 `plans/2026-09-07-end-to-end-test.md`。
+
+**一次合并事故记录**：PR #1 #2 合并时两个分支尚未 push，GitHub 上合进去的是空的开工 commit，两边都不报错。补推后重开 PR #4 #5 才真正合入。**PR 反映的是远程分支，不是本地工作**——分派契约里的「commit + push」，会话只做了前一半。
 
 ### 剩余工作面与分支划分
 
