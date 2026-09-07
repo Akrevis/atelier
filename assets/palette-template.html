@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-session="__SESSION__" data-project="__PROJECT__">
+<head>
+<meta charset="utf-8">
+<title>palette</title>
+<style>
+  :root {
+    --bg: #14161a; --panel: #1a1d23; --line: #2c323c;
+    --node-bg: #222731; --node-br: #3a424f;
+    --fg: #d8dde5; --muted: #8b95a5;
+    --accent: #7fb4ff; --danger: #ff8f7a; --ok: #86d99a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 14px/1.55 "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10; background: var(--bg);
+    border-bottom: 1px solid var(--line); padding: 10px 18px 0;
+  }
+  .bar { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .brand { font-weight: 600; letter-spacing: .06em; color: var(--accent); }
+  .where {
+    color: var(--muted); font-size: 12px; font-family: ui-monospace, Consolas, monospace;
+    max-width: 46ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hint { color: var(--muted); font-size: 12px; }
+  .hint kbd {
+    border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px;
+    padding: 0 5px; font-family: ui-monospace, Consolas, monospace; font-size: 11px;
+  }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 10px; }
+  nav button {
+    background: none; border: 1px solid transparent; border-bottom: none;
+    color: var(--muted); padding: 6px 14px; cursor: pointer;
+    border-radius: 6px 6px 0 0; font: inherit; font-size: 13px;
+  }
+  nav button:hover { color: var(--fg); background: var(--panel); }
+  nav button[aria-selected="true"] {
+    color: var(--fg); background: var(--panel);
+    border-color: var(--line); position: relative; bottom: -1px;
+  }
+  nav button .idx { color: var(--muted); font-size: 11px; margin-right: 6px; }
+  main { padding: 22px 18px 60px; }
+  .panel { display: none; }
+  .panel.on { display: block; }
+  .panel h2 { margin: 0 0 4px; font-size: 17px; font-weight: 600; }
+  .panel .summary { margin: 0 0 22px; color: var(--muted); max-width: 78ch; }
+  .stage { position: relative; }
+  .stage svg { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+  .node {
+    position: absolute; background: var(--node-bg);
+    border: 1px solid var(--node-br); border-radius: 7px;
+    padding: 9px 12px; transition: border-color .12s, box-shadow .12s;
+  }
+  .node .label { font-weight: 500; }
+  .node .note {
+    color: var(--muted); font-size: 12px; margin-top: 4px;
+    padding-top: 4px; border-top: 1px dashed var(--line);
+  }
+  .node[data-kind="accent"] { border-color: var(--accent); }
+  .node[data-kind="accent"] .label { color: var(--accent); }
+  .node[data-kind="danger"] { border-color: var(--danger); }
+  .node[data-kind="danger"] .label { color: var(--danger); }
+  .node[data-kind="ok"] { border-color: var(--ok); }
+  .node[data-kind="ok"] .label { color: var(--ok); }
+  .node[data-kind="muted"] { opacity: .62; border-style: dashed; }
+  .node.lit { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(127,180,255,.14); }
+  .node.dim { opacity: .3; }
+  path.edge { fill: none; stroke: #4d5666; stroke-width: 1.6px; }
+  path.edge[data-style="dashed"] { stroke-dasharray: 5 4; }
+  path.edge.lit { stroke: var(--accent); stroke-width: 2.2px; }
+  path.edge.dim { opacity: .18; }
+  .elabel {
+    position: absolute; transform: translate(-50%, -50%);
+    background: var(--bg); color: var(--muted);
+    font-size: 11.5px; padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+  }
+  .elabel.lit { color: var(--accent); }
+  .elabel.dim { opacity: .2; }
+  .empty { color: var(--muted); padding: 40px 0; }
+  .empty code {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 6px; font-family: ui-monospace, Consolas, monospace;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="brand">▍palette</span>
+    <span class="where" id="where"></span>
+    <span class="hint">
+      <kbd>R</kbd> 重新载入 · <kbd>1</kbd>–<kbd>9</kbd> 切换 · 悬停节点看它的连线
+    </span>
+  </div>
+  <nav id="tabs"></nav>
+</header>
+<main id="panels"></main>
+
+<!-- FIGURES:BEGIN -->
+<!-- FIGURES:END -->
+
+<script>
+const COL_GAP = 92, ROW_GAP = 44, NODE_W = 184;
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+function layout(stage, fig) {
+  const svg = document.createElementNS(SVGNS, 'svg');
+  const defs = document.createElementNS(SVGNS, 'defs');
+  defs.innerHTML =
+    '<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"' +
+    ' orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4d5666"/></marker>' +
+    '<marker id="ah-lit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"' +
+    ' orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7fb4ff"/></marker>';
+  svg.appendChild(defs);
+  stage.appendChild(svg);
+
+  // 先只定 x 放进 DOM，让浏览器量出每个节点的真实高度
+  const box = {};
+  const cols = [...new Set(fig.nodes.map(n => n.col || 0))].sort((a, b) => a - b);
+  const rows = [...new Set(fig.nodes.map(n => n.row || 0))].sort((a, b) => a - b);
+  const colX = {};
+  cols.forEach((c, i) => { colX[c] = i * (NODE_W + COL_GAP); });
+
+  for (const n of fig.nodes) {
+    const el = document.createElement('div');
+    el.className = 'node';
+    el.dataset.id = n.id;
+    if (n.kind) el.dataset.kind = n.kind;
+    el.style.width = NODE_W + 'px';
+    el.style.left = colX[n.col || 0] + 'px';
+    el.innerHTML = '<div class="label"></div>' + (n.note ? '<div class="note"></div>' : '');
+    el.querySelector('.label').textContent = n.label;
+    if (n.note) el.querySelector('.note').textContent = n.note;
+    stage.appendChild(el);
+    box[n.id] = el;
+  }
+
+  // 行高取该行最高的节点，同行顶部对齐
+  const rowY = {};
+  let y = 0;
+  for (const r of rows) {
+    rowY[r] = y;
+    const h = Math.max(...fig.nodes.filter(n => (n.row || 0) === r)
+      .map(n => box[n.id].offsetHeight));
+    y += h + ROW_GAP;
+  }
+  for (const n of fig.nodes) box[n.id].style.top = rowY[n.row || 0] + 'px';
+
+  stage.style.height = (y - ROW_GAP + 10) + 'px';
+  stage.style.width = (cols.length * (NODE_W + COL_GAP) - COL_GAP + 4) + 'px';
+
+  // 连线：读实际几何，走正交折线
+  const rect = id => {
+    const e = box[id];
+    return { x: e.offsetLeft, y: e.offsetTop, w: e.offsetWidth, h: e.offsetHeight };
+  };
+  const blockers = fig.nodes.map(n => Object.assign({ id: n.id }, rect(n.id)));
+  let ei = 0;
+  for (const e of (fig.edges || [])) {
+    if (!box[e.from] || !box[e.to]) continue;
+    const p = route(rect(e.from), rect(e.to), e.from === e.to,
+      blockers.filter(r => r.id !== e.from && r.id !== e.to), ei++);
+    const el = document.createElementNS(SVGNS, 'path');
+    el.setAttribute('class', 'edge');
+    el.setAttribute('d', p.d);
+    el.setAttribute('marker-end', 'url(#ah)');
+    if (e.style) el.dataset.style = e.style;
+    el.dataset.from = e.from;
+    el.dataset.to = e.to;
+    svg.appendChild(el);
+    if (e.label) {
+      const lb = document.createElement('div');
+      lb.className = 'elabel';
+      lb.textContent = e.label;
+      lb.style.left = p.mx + 'px';
+      lb.style.top = p.my + 'px';
+      lb.dataset.from = e.from;
+      lb.dataset.to = e.to;
+      stage.appendChild(lb);
+    }
+  }
+  hover(stage);
+}
+
+// 线段（轴对齐）是否切进某个节点框；用来决定要不要绕路
+function blocked(segs, rects) {
+  const pad = 6;
+  for (const r of rects) {
+    for (const s of segs) {
+      const lo = { x: Math.min(s.x1, s.x2), y: Math.min(s.y1, s.y2) };
+      const hi = { x: Math.max(s.x1, s.x2), y: Math.max(s.y1, s.y2) };
+      if (lo.x < r.x + r.w + pad && hi.x > r.x - pad &&
+          lo.y < r.y + r.h + pad && hi.y > r.y - pad) return true;
+    }
+  }
+  return false;
+}
+
+// 四种走法：自环 / 同列直上下 / 向右折线 / 绕下方通道
+// 向右折线撞上中间的节点时也降级走通道；idx 让多条通道线错开，不叠在一起
+function route(a, b, self, rects, idx) {
+  rects = rects || [];
+  const lane = ((idx || 0) % 4) * 9;
+  if (self) {
+    const x = a.x + a.w, y = a.y + a.h / 2, r = 26;
+    return {
+      d: 'M' + x + ',' + (y - 8) + ' C' + (x + r) + ',' + (y - r) +
+         ' ' + (x + r) + ',' + (y + r) + ' ' + x + ',' + (y + 8),
+      mx: x + r, my: y
+    };
+  }
+  const ac = a.x + a.w / 2, bc = b.x + b.w / 2;
+  if (Math.abs(ac - bc) < 1) {
+    const down = b.y > a.y;
+    const y1 = down ? a.y + a.h : a.y;
+    const y2 = down ? b.y : b.y + b.h;
+    return { d: 'M' + ac + ',' + y1 + ' L' + bc + ',' + y2, mx: ac, my: (y1 + y2) / 2 };
+  }
+  if (b.x > a.x + a.w - 1) {
+    const x1 = a.x + a.w, x2 = b.x;
+    const y1 = a.y + a.h / 2, y2 = b.y + b.h / 2, mx = (x1 + x2) / 2;
+    const segs = [
+      { x1: x1, y1: y1, x2: mx, y2: y1 },
+      { x1: mx, y1: y1, x2: mx, y2: y2 },
+      { x1: mx, y1: y2, x2: x2, y2: y2 }
+    ];
+    if (!blocked(segs, rects)) {
+      return {
+        d: 'M' + x1 + ',' + y1 + ' H' + mx + ' V' + y2 + ' H' + x2,
+        mx: mx, my: (y1 + y2) / 2
+      };
+    }
+  }
+  // 通道：从底部出，沿行下方水平走，再折上去进 b
+  const dip = Math.max(a.y + a.h, b.y + b.h) + ROW_GAP / 2 + lane;
+  const enter = b.x - 22;
+  if (enter < 4) {   // b 贴着最左列，左侧没有折返余地，改从它底部进
+    return {
+      d: 'M' + ac + ',' + (a.y + a.h) + ' V' + dip + ' H' + bc + ' V' + (b.y + b.h),
+      mx: (ac + bc) / 2, my: dip
+    };
+  }
+  return {
+    d: 'M' + ac + ',' + (a.y + a.h) + ' V' + dip + ' H' + enter +
+       ' V' + (b.y + b.h / 2) + ' H' + b.x,
+    mx: (ac + enter) / 2, my: dip
+  };
+}
+
+function hover(stage) {
+  const all = () => [...stage.querySelectorAll('.node, .edge, .elabel')];
+  stage.addEventListener('mouseover', ev => {
+    const n = ev.target.closest('.node');
+    if (!n) return;
+    const id = n.dataset.id;
+    const kin = new Set([id]);
+    stage.querySelectorAll('.edge').forEach(e => {
+      if (e.dataset.from === id) kin.add(e.dataset.to);
+      if (e.dataset.to === id) kin.add(e.dataset.from);
+    });
+    for (const el of all()) {
+      const touch = el.classList.contains('node')
+        ? kin.has(el.dataset.id)
+        : (el.dataset.from === id || el.dataset.to === id);
+      el.classList.toggle('lit', touch);
+      el.classList.toggle('dim', !touch);
+      if (el.classList.contains('edge')) {
+        el.setAttribute('marker-end', touch ? 'url(#ah-lit)' : 'url(#ah)');
+      }
+    }
+  });
+  stage.addEventListener('mouseleave', () => {
+    for (const el of all()) {
+      el.classList.remove('lit', 'dim');
+      if (el.classList.contains('edge')) el.setAttribute('marker-end', 'url(#ah)');
+    }
+  });
+}
+
+function boot() {
+  // 开着好几个画板标签页时，靠这行分清哪个是哪个
+  const meta = document.documentElement.dataset;
+  const proj = (meta.project || '').replace(/^__.*__$/, '');
+  const sid = (meta.session || '').replace(/^__.*__$/, '').slice(0, 8);
+  document.getElementById('where').textContent =
+    [proj.split(/[\\/]/).filter(Boolean).pop(), sid].filter(Boolean).join(' · ');
+  document.title = ['palette', proj.split(/[\\/]/).filter(Boolean).pop()].filter(Boolean).join(' · ');
+
+  const raw = [...document.querySelectorAll('script.figure')];
+  const tabs = document.getElementById('tabs');
+  const panels = document.getElementById('panels');
+
+  if (!raw.length) {
+    panels.innerHTML =
+      '<p class="empty">还没有图。在 Claude Code 里敲 <code>/palette</code> 生成一张。</p>';
+    return;
+  }
+
+  const figs = raw.map((s, i) => {
+    try {
+      return JSON.parse(s.textContent);
+    } catch (err) {
+      return { title: '第 ' + (i + 1) + ' 张解析失败', summary: String(err), nodes: [], edges: [] };
+    }
+  });
+
+  figs.forEach((fig, i) => {
+    const btn = document.createElement('button');
+    btn.innerHTML = '<span class="idx"></span><span class="t"></span>';
+    btn.querySelector('.idx').textContent = i + 1;
+    btn.querySelector('.t').textContent = fig.title || ('图 ' + (i + 1));
+    btn.onclick = () => show(i);
+    tabs.appendChild(btn);
+
+    const p = document.createElement('section');
+    p.className = 'panel';
+    p.innerHTML = '<h2></h2><p class="summary"></p><div class="stage"></div>';
+    p.querySelector('h2').textContent = fig.title || ('图 ' + (i + 1));
+    p.querySelector('.summary').textContent = fig.summary || '';
+    panels.appendChild(p);
+  });
+
+  const drawn = new Set();
+  function show(i) {
+    [...tabs.children].forEach((b, j) => b.setAttribute('aria-selected', j === i));
+    [...panels.children].forEach((p, j) => p.classList.toggle('on', j === i));
+    if (!drawn.has(i)) {   // 隐藏元素量不出尺寸，所以首次可见时才布局
+      drawn.add(i);
+      layout(panels.children[i].querySelector('.stage'), figs[i]);
+    }
+    // 按 R 刷新后仍停在这一张；file:// 下 replaceState 可能被拒，退回直接改 hash
+    try { history.replaceState(null, '', '#' + (i + 1)); }
+    catch (err) { location.hash = i + 1; }
+  }
+
+  // hash 指定了就听它，否则停在最新一张
+  const asked = parseInt(location.hash.slice(1), 10) - 1;
+  show(asked >= 0 && asked < figs.length ? asked : figs.length - 1);
+
+  addEventListener('keydown', ev => {
+    if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    if (ev.key === 'r' || ev.key === 'R') location.reload();
+    const n = +ev.key;
+    if (n >= 1 && n <= figs.length) show(n - 1);
+  });
+}
+boot();
+</script>
+</body>
+</html>
