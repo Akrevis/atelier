@@ -1,6 +1,6 @@
 # atelier · context
 
-> Last updated: 2026-09-06 · commit cccdea7
+> Last updated: 2026-09-07 · commit a3fb746
 > 本文件注入每次会话。只写 git 推导不出、且 AI 不知道自己缺的事实。
 
 ## 这是什么
